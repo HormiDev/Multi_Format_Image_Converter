@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hormi Image Converter</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="workspace" aria-label="Conversor de imagenes">
+      <header class="topbar">
+        <div>
+          <h1>Hormi Image Converter</h1>
+          <p class="subtitle">PNG - JPG - WebP - AVIF - GIF - BMP - ICO - TIFF - TGA - QOI - PPM - PGM - PBM - XPM - SVG</p>
+          <a class="repo-link" href="https://github.com/HormiDev/HormiImageConverter" target="_blank" rel="noopener noreferrer" aria-label="Repositorio oficial en GitHub">
+            <img
+              class="repo-link__avatar"
+              src="https://github.com/HormiDev.png?size=48"
+              alt=""
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              onerror="this.hidden=true;this.nextElementSibling.hidden=false;"
+            >
+            <svg class="repo-link__icon repo-link__fallback" viewBox="0 0 16 16" aria-hidden="true" hidden>
+              <path d="M8 0C3.58 0 0 3.69 0 8.24c0 3.64 2.29 6.73 5.47 7.82.4.08.55-.18.55-.4 0-.2-.01-.85-.01-1.54-2.01.38-2.53-.5-2.69-.96-.09-.24-.48-.96-.82-1.15-.28-.16-.68-.55-.01-.56.63-.01 1.08.6 1.23.85.72 1.25 1.87.9 2.33.69.07-.54.28-.9.51-1.11-1.78-.21-3.64-.92-3.64-4.08 0-.9.31-1.64.82-2.22-.08-.21-.36-1.05.08-2.19 0 0 .67-.22 2.2.85A7.36 7.36 0 0 1 8 3.96c.68 0 1.36.09 2 .28 1.53-1.07 2.2-.85 2.2-.85.44 1.14.16 1.98.08 2.19.51.58.82 1.31.82 2.22 0 3.17-1.87 3.87-3.65 4.08.29.26.54.75.54 1.52 0 1.1-.01 1.99-.01 2.26 0 .22.15.48.55.4A8.18 8.18 0 0 0 16 8.24C16 3.69 12.42 0 8 0Z"/>
+            </svg>
+            <span>HormiDev / Repo</span>
+          </a>
+        </div>
+        <div class="topbar__actions">
+          <button class="theme-switch" type="button" data-theme-toggle aria-label="Cambiar a tema claro" aria-pressed="false">
+            <span class="theme-switch__track">
+              <span class="theme-switch__icon theme-switch__icon--sun" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="4"/>
+                  <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+                </svg>
+              </span>
+              <span class="theme-switch__icon theme-switch__icon--moon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20.4 14.6A7.8 7.8 0 0 1 9.4 3.6 8.6 8.6 0 1 0 20.4 14.6Z"/>
+                </svg>
+              </span>
+              <span class="theme-switch__thumb"></span>
+            </span>
+          </button>
+          <button class="button button--ghost" type="button" data-clear-button disabled>Vaciar</button>
+          <button class="button button--primary" type="button" data-convert-button disabled>Convertir</button>
+        </div>
+      </header>
+
+      <details class="manual-panel">
+        <summary>
+          <span>Manual rapido</span>
+          <span class="manual-panel__hint">Ver pasos</span>
+        </summary>
+        <div class="manual-panel__content">
+          <ol>
+            <li>Arrastra una o varias imagenes a la zona de entrada o pulsa <strong>Elegir archivos</strong>.</li>
+            <li>Selecciona el formato de salida en el panel de exportacion.</li>
+            <li>Ajusta las opciones del formato, como calidad, fondo, alfa, paleta o profundidad.</li>
+            <li>Deja <strong>Empaquetar en ZIP</strong> activo si quieres descargar todo en un unico archivo.</li>
+            <li>Pulsa <strong>Convertir</strong> y espera a que termine la descarga.</li>
+          </ol>
+          <p>La app funciona localmente. Los formatos nativos dependen del navegador y los formatos especiales usan codificadores incluidos en el proyecto.</p>
+        </div>
+      </details>
+
+      <div class="tool-grid">
+        <section class="input-pane" aria-label="Entrada">
+          <div class="drop-zone" data-drop-zone>
+            <input
+              class="file-input"
+              type="file"
+              accept="image/*,.ppm,.pgm,.pbm,.xpm,.qoi,.tga,.bmp"
+              multiple
+              data-file-input
+            >
+            <div class="drop-zone__inner">
+              <span class="drop-zone__mark">+</span>
+              <strong>Soltar imagenes</strong>
+              <button class="button button--secondary" type="button" data-pick-button>Elegir archivos</button>
+            </div>
+          </div>
+
+          <div class="image-list" data-image-list></div>
+        </section>
+
+        <aside class="settings-pane" aria-label="Exportacion">
+          <label class="field">
+            <span>Formato</span>
+            <select data-format-select></select>
+          </label>
+          <p class="format-description" data-format-description></p>
+
+          <div class="option-group" data-options></div>
+
+          <label class="zip-toggle">
+            <input type="checkbox" data-zip-toggle checked>
+            <span>Empaquetar en ZIP</span>
+          </label>
+
+          <div class="status-box">
+            <progress value="0" max="100" data-progress></progress>
+            <span data-status>Preparado</span>
+          </div>
+
+          <ul class="output-list" data-output-list></ul>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="./js/core/namespace.js"></script>
+  <script src="./js/core/binary.js"></script>
+  <script src="./js/core/color.js"></script>
+  <script src="./js/core/palette.js"></script>
+  <script src="./js/zip/crc32.js"></script>
+  <script src="./js/zip/zip.js"></script>
+  <script src="./js/importers/netpbm.js"></script>
+  <script src="./js/importers/bmp.js"></script>
+  <script src="./js/importers/qoi.js"></script>
+  <script src="./js/importers/tga.js"></script>
+  <script src="./js/importers/xpm.js"></script>
+  <script src="./js/encoders/native.js"></script>
+  <script src="./js/encoders/bmp.js"></script>
+  <script src="./js/encoders/netpbm.js"></script>
+  <script src="./js/encoders/qoi.js"></script>
+  <script src="./js/encoders/tga.js"></script>
+  <script src="./js/encoders/xpm.js"></script>
+  <script src="./js/encoders/gif.js"></script>
+  <script src="./js/encoders/ico.js"></script>
+  <script src="./js/encoders/tiff.js"></script>
+  <script src="./js/encoders/svg.js"></script>
+  <script src="./js/formats/catalog.js"></script>
+  <script src="./js/encoders/registry.js"></script>
+  <script src="./js/conversion/file-loader.js"></script>
+  <script src="./js/conversion/converter.js"></script>
+  <script src="./js/ui/options.js"></script>
+  <script src="./js/ui/gallery.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
