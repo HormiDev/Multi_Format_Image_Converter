@@ -460,6 +460,15 @@ button:disabled {
   transform: translate(-2px, -2px);
 }
 
+.drop-zone.is-loading {
+  border-color: var(--accent);
+  background: var(--drop-active);
+}
+
+.drop-zone.is-loading .drop-zone__inner {
+  opacity: 0.22;
+}
+
 .file-input {
   position: absolute;
   inline-size: 1px;
@@ -474,6 +483,44 @@ button:disabled {
   gap: 14px;
   padding: 24px;
   text-align: center;
+}
+
+.loading-indicator {
+  position: absolute;
+  inset: auto;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: 0 14px;
+  background: var(--panel-soft);
+  color: var(--accent-strong);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.24);
+  font-size: 0.9rem;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.loading-indicator[hidden] {
+  display: none;
+}
+
+.loading-indicator__spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent-strong);
+  border-radius: 50%;
+  animation: loading-spin 720ms linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .drop-zone__mark {
@@ -511,13 +558,53 @@ button:disabled {
 
 .image-item {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 32px 64px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
   border: 2px solid var(--line);
   border-radius: 4px;
   padding: 10px;
   background: var(--panel);
+  cursor: grab;
+  transition: border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease, transform 120ms ease;
+}
+
+.image-item:active {
+  cursor: grabbing;
+}
+
+.image-item.is-dragging {
+  opacity: 0.46;
+  transform: scale(0.98);
+}
+
+.image-item.is-drag-over-before,
+.image-item.is-drag-over-after {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.image-item.is-drag-over-before {
+  transform: translateY(-2px);
+}
+
+.image-item.is-drag-over-after {
+  transform: translateY(2px);
+}
+
+.image-item__order {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-soft);
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .image-item img {

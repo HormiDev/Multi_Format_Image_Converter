@@ -20,6 +20,7 @@
       dropZone: document.querySelector('[data-drop-zone]'),
       fileInput: document.querySelector('[data-file-input]'),
       pickButton: document.querySelector('[data-pick-button]'),
+      loadingIndicator: document.querySelector('[data-loading-indicator]'),
       languageControl: document.querySelector('[data-language-control]'),
       languageSelect: document.querySelector('[data-language-select]'),
       themeToggle: document.querySelector('[data-theme-toggle]'),
@@ -71,6 +72,40 @@
   function setProgress(refs, done, total) {
     var value = total ? Math.round((done / total) * 100) : 0;
     refs.progress.value = value;
+  }
+
+  /**
+   * Espera a que el navegador tenga ocasion de pintar cambios visuales.
+   *
+   * @returns {Promise<void>} Promesa resuelta en el siguiente repintado.
+   */
+  function nextPaint() {
+    return new Promise(function (resolve) {
+      if (typeof global.requestAnimationFrame === 'function') {
+        global.requestAnimationFrame(function () {
+          resolve();
+        });
+        return;
+      }
+      global.setTimeout(resolve, 0);
+    });
+  }
+
+  /**
+   * Activa o desactiva el estado visual de importacion.
+   *
+   * @param {object} refs Referencias DOM.
+   * @param {boolean} importing Si hay una importacion activa.
+   * @returns {void}
+   */
+  function setImporting(refs, importing) {
+    refs.dropZone.classList.toggle('is-loading', importing);
+    refs.dropZone.setAttribute('aria-busy', importing ? 'true' : 'false');
+    refs.fileInput.disabled = importing;
+    refs.pickButton.disabled = importing;
+    if (refs.loadingIndicator) {
+      refs.loadingIndicator.hidden = !importing;
+    }
   }
 
   /**
@@ -160,6 +195,35 @@
   }
 
   /**
+   * Mueve una imagen cargada a otra posicion.
+   *
+   * @param {string} sourceId Imagen arrastrada.
+   * @param {string} targetId Imagen destino.
+   * @param {string} placement Posicion relativa al destino.
+   * @returns {void}
+   */
+  function moveRaster(sourceId, targetId, placement) {
+    var from = state.rasters.findIndex(function (raster) {
+      return raster.id === sourceId;
+    });
+    var to = state.rasters.findIndex(function (raster) {
+      return raster.id === targetId;
+    });
+    var moved;
+    if (from === -1 || to === -1 || from === to) {
+      return;
+    }
+    moved = state.rasters.splice(from, 1)[0];
+    if (from < to) {
+      to -= 1;
+    }
+    if (placement === 'after') {
+      to += 1;
+    }
+    state.rasters.splice(to, 0, moved);
+  }
+
+  /**
    * Renderiza la galeria y los botones dependientes de estado.
    *
    * @param {object} refs Referencias DOM.
@@ -170,6 +234,9 @@
       state.rasters = state.rasters.filter(function (raster) {
         return raster.id !== id;
       });
+      renderState(refs);
+    }, function (sourceId, targetId, placement) {
+      moveRaster(sourceId, targetId, placement);
       renderState(refs);
     });
     refs.convertButton.disabled = state.rasters.length === 0;
@@ -223,15 +290,25 @@
       return;
     }
     setProgress(refs, 0, list.length);
-    for (var i = 0; i < list.length; i += 1) {
-      setStatus(refs, 'status.loading', { name: list[i].name });
-      try {
-        state.rasters.push(await Hormi.Conversion.FileLoader.loadFile(list[i]));
-      } catch (error) {
-        setStatus(refs, 'status.loadError', { name: list[i].name, message: error.message });
+    setImporting(refs, true);
+    try {
+      for (var i = 0; i < list.length; i += 1) {
+        setStatus(refs, 'status.loading', { name: list[i].name });
+        await nextPaint();
+        try {
+          var loader = Hormi.Conversion.FileLoader;
+          var rasters = loader.loadFileRasters
+            ? await loader.loadFileRasters(list[i])
+            : [await loader.loadFile(list[i])];
+          state.rasters = state.rasters.concat(rasters);
+        } catch (error) {
+          setStatus(refs, 'status.loadError', { name: list[i].name, message: error.message });
+        }
+        setProgress(refs, i + 1, list.length);
+        renderState(refs);
       }
-      setProgress(refs, i + 1, list.length);
-      renderState(refs);
+    } finally {
+      setImporting(refs, false);
     }
     setStatus(refs, imagesReadyKey(state.rasters.length), { count: state.rasters.length });
   }

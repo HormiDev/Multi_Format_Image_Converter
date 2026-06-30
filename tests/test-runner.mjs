@@ -40,7 +40,8 @@ function loadScript(relative) {
   'src/js/formats/catalog.js',
   'src/js/conversion/resize.js',
   'src/js/encoders/registry.js',
-  'src/js/conversion/converter.js'
+  'src/js/conversion/converter.js',
+  'src/js/conversion/file-loader.js'
 ].forEach(loadScript);
 
 const { Hormi } = globalThis;
@@ -60,6 +61,22 @@ function fixtureImage() {
       255, 255, 255, 0, 0, 0, 0, 255, 128, 128, 128, 255, 250, 120, 20, 255
     ])
   };
+}
+
+/**
+ * Crea una imagen solida RGBA.
+ *
+ * @param {number} width Ancho.
+ * @param {number} height Alto.
+ * @param {number[]} rgba Color RGBA.
+ * @returns {{width:number,height:number,data:Uint8ClampedArray}} Imagen solida.
+ */
+function solidImage(width, height, rgba) {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let i = 0; i < width * height; i += 1) {
+    data.set(rgba, i * 4);
+  }
+  return { width, height, data };
 }
 
 /**
@@ -90,6 +107,17 @@ function assertRgbImage(actual, expected) {
     assert.equal(actual.data[i + 1], expected.data[i + 1]);
     assert.equal(actual.data[i + 2], expected.data[i + 2]);
   }
+}
+
+/**
+ * Busca una opcion de exportacion por formato e identificador.
+ *
+ * @param {string} formatId Identificador del formato.
+ * @param {string} optionId Identificador de la opcion.
+ * @returns {object} Opcion encontrada.
+ */
+function formatOption(formatId, optionId) {
+  return Hormi.Formats.byId(formatId).options.find((option) => option.id === optionId);
 }
 
 /**
@@ -309,6 +337,21 @@ await test('Redimensionado comun cambia dimensiones antes de exportar', async ()
   assert.equal(decoded.data.length, 2 * 2 * 4);
 });
 
+await test('Color de fondo depende de opciones que aplanan transparencia', () => {
+  [
+    ['png', 'flattenAlpha', true],
+    ['webp', 'flattenAlpha', true],
+    ['avif', 'flattenAlpha', true],
+    ['svg', 'flattenAlpha', true],
+    ['gif', 'transparency', false],
+    ['tiff', 'alphaMode', 'flatten'],
+    ['bmp', 'bitDepth', '24'],
+    ['tga', 'bitDepth', '24']
+  ].forEach(([formatId, id, value]) => {
+    assert.deepEqual(formatOption(formatId, 'background').dependsOn, { id, value });
+  });
+});
+
 await test('BMP 32 bits exporta e importa RGBA', () => {
   const image = fixtureImage();
   const encoded = Hormi.Encoders.Bmp.encode(image, { bitDepth: 32 });
@@ -417,6 +460,30 @@ await test('GIF animado exporta varios fotogramas con lienzo comun', () => {
   assert.equal(u16(encoded, 8), 5);
   assert.equal(frames.length, 3);
   assert.ok(frames.every((frame) => frame.width === 6 && frame.height === 5));
+});
+
+await test('Importador GIF separa animaciones en fotogramas', () => {
+  const first = solidImage(2, 2, [255, 0, 0, 255]);
+  const second = solidImage(2, 2, [0, 0, 255, 255]);
+  const encoded = Hormi.Encoders.Gif.encodeAnimation([
+    { name: 'rojo.png', width: first.width, height: first.height, imageData: first },
+    { name: 'azul.png', width: second.width, height: second.height, imageData: second }
+  ], {
+    gifMode: 'animation',
+    colors: 4,
+    transparency: false,
+    fps: 10,
+    loop: 0,
+    canvasMode: 'largest',
+    fitMode: 'contain',
+    background: '#ffffff'
+  });
+  const frames = Hormi.Conversion.FileLoader.decodeGifFrames(encoded);
+  assert.equal(frames.length, 2);
+  assert.equal(frames[0].width, 2);
+  assert.equal(frames[0].height, 2);
+  assert.deepEqual(Array.from(frames[0].data.subarray(0, 4)), [255, 0, 0, 255]);
+  assert.deepEqual(Array.from(frames[1].data.subarray(0, 4)), [0, 0, 255, 255]);
 });
 
 await test('Conversor GIF agrupa varias imagenes como animacion', async () => {

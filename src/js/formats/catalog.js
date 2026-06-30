@@ -24,15 +24,20 @@
   /**
    * Crea una opcion de color de fondo para aplanar alfa.
    *
+   * @param {object} dependsOn Dependencia opcional de visibilidad.
    * @returns {object} Definicion de opcion.
    */
-  function backgroundOption() {
-    return {
+  function backgroundOption(dependsOn) {
+    var option = {
       id: 'background',
       labelKey: 'option.background',
       type: 'color',
       default: '#ffffff'
     };
+    if (dependsOn) {
+      option.dependsOn = dependsOn;
+    }
+    return option;
   }
 
   /**
@@ -189,7 +194,7 @@
       mime: 'image/png',
       encoder: 'native',
       descriptionKey: 'format.png.description',
-      options: exportOptions([flattenAlphaOption(false), backgroundOption()])
+      options: exportOptions([flattenAlphaOption(false), backgroundOption({ id: 'flattenAlpha', value: true })])
     },
     {
       id: 'jpeg',
@@ -207,7 +212,7 @@
       mime: 'image/webp',
       encoder: 'native',
       descriptionKey: 'format.webp.description',
-      options: exportOptions([qualityOption(0.9), flattenAlphaOption(false), backgroundOption()])
+      options: exportOptions([qualityOption(0.9), flattenAlphaOption(false), backgroundOption({ id: 'flattenAlpha', value: true })])
     },
     {
       id: 'avif',
@@ -216,7 +221,7 @@
       mime: 'image/avif',
       encoder: 'native',
       descriptionKey: 'format.avif.description',
-      options: exportOptions([qualityOption(0.8), flattenAlphaOption(false), backgroundOption()])
+      options: exportOptions([qualityOption(0.8), flattenAlphaOption(false), backgroundOption({ id: 'flattenAlpha', value: true })])
     },
     {
       id: 'gif',
@@ -302,7 +307,7 @@
             { value: 'center', labelKey: 'choice.center' }
           ]
         },
-        backgroundOption()
+        backgroundOption({ id: 'transparency', value: false })
       ])
     },
     {
@@ -323,7 +328,7 @@
             { value: '32', labelKey: 'choice.32Rgba' }
           ]
         },
-        backgroundOption()
+        backgroundOption({ id: 'bitDepth', value: '24' })
       ])
     },
     {
@@ -372,7 +377,7 @@
           step: 1,
           default: 72
         },
-        backgroundOption()
+        backgroundOption({ id: 'alphaMode', value: 'flatten' })
       ])
     },
     {
@@ -403,7 +408,7 @@
             { value: 'bottom', labelKey: 'choice.bottomLeft' }
           ]
         },
-        backgroundOption()
+        backgroundOption({ id: 'bitDepth', value: '24' })
       ])
     },
     {
@@ -505,7 +510,7 @@
           default: ''
         },
         flattenAlphaOption(false),
-        backgroundOption()
+        backgroundOption({ id: 'flattenAlpha', value: true })
       ])
     }
   ];
